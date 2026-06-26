@@ -26,6 +26,7 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if SRC_ROOT.exists():
     sys.path.insert(0, str(SRC_ROOT))
 
+from music_reasoning_tasks import __version__ as GENERATOR_VERSION
 from music_reasoning_tasks import get_task
 from music_reasoning_tasks.chord_roman_reasoning import MODE_NAMES as CHORD_ROMAN_MODES
 from music_reasoning_tasks.pitch_interval_reasoning import MODE_NAMES as PITCH_INTERVAL_MODES
@@ -41,6 +42,7 @@ DEFAULT_SPLIT_NAMES = {
     3: "moderate",
     5: "hard",
 }
+DEFAULT_BENCHMARK_VERSION = "v0.1.0"
 
 
 def _jsonable(value: Any) -> Any:
@@ -163,7 +165,15 @@ def _write_summary(path: Path, summary: dict[str, Any]) -> None:
     path.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _write_dataset_card(path: Path, *, levels: list[int], examples_per_mode: int, seed: int | None) -> None:
+def _write_dataset_card(
+    path: Path,
+    *,
+    levels: list[int],
+    examples_per_mode: int,
+    seed: int | None,
+    benchmark_version: str,
+    generator_version: str,
+) -> None:
     """Write a minimal Hugging Face dataset card for the generated benchmark."""
     split_rows = "\n".join(
         f"  - split: {_split_name(level)}\n    path: data/{_split_name(level)}.jsonl" for level in levels
@@ -182,6 +192,9 @@ configs:
 
 This benchmark was generated with
 [`Danila-Pechenev/procedural-music-reasoning`](https://github.com/Danila-Pechenev/procedural-music-reasoning).
+
+Benchmark version: `{benchmark_version}`.
+Generator version: `{generator_version}`.
 
 It contains balanced examples from two implemented music reasoning task
 families:
@@ -227,6 +240,20 @@ Difficulty levels are distributional. A hard split may still contain some
 simple examples, but harder musical features are sampled more often or from a
 larger space.
 
+## Versioning
+
+Hugging Face dataset releases should be tagged with the benchmark version. To
+load this exact release after upload, use:
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset(
+    "dpechenev/music-reasoning-benchmark",
+    revision="{benchmark_version}",
+)
+```
+
 Generation seed: `{seed}`.
 """,
         encoding="utf-8",
@@ -257,6 +284,16 @@ def main() -> None:
     parser.add_argument("--max-tokens", type=int, default=8192, help="Token budget per generated example.")
     parser.add_argument("--seed", type=int, default=0, help="Random seed. Use -1 for no explicit seed.")
     parser.add_argument(
+        "--benchmark-version",
+        default=DEFAULT_BENCHMARK_VERSION,
+        help=f"Benchmark release version recorded in README.md and summary.json. Defaults to {DEFAULT_BENCHMARK_VERSION}.",
+    )
+    parser.add_argument(
+        "--generator-version",
+        default=GENERATOR_VERSION,
+        help="Generator package version recorded in README.md and summary.json.",
+    )
+    parser.add_argument(
         "--max-attempts-multiplier",
         type=int,
         default=80,
@@ -283,6 +320,8 @@ def main() -> None:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     summary: dict[str, Any] = {
+        "benchmark_version": args.benchmark_version,
+        "generator_version": args.generator_version,
         "levels": args.levels,
         "examples_per_mode": args.examples_per_mode,
         "seed": seed,
@@ -327,6 +366,8 @@ def main() -> None:
         levels=args.levels,
         examples_per_mode=args.examples_per_mode,
         seed=seed,
+        benchmark_version=args.benchmark_version,
+        generator_version=args.generator_version,
     )
     print(f"Done. Wrote benchmark to {args.out_dir}")
 
