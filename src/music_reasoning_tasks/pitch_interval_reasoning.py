@@ -82,11 +82,11 @@ INTERVAL_NAME_SCORE_OPENERS = (
     "Identify the interval between the two notated pitches in this ABC score fragment:\n{score}",
 )
 INTERVAL_NAME_TAILS = (
-    "Answer format: one interval name, for example, minor third or double-augmented eleventh; keep the written simple or compound size.",
-    "Give one interval name, keeping the compound or simple size as written.",
-    "Answer with one interval name, preserving whether the interval is simple or compound.",
-    "The expected answer is one interval name with the written interval size preserved.",
-    "Provide one interval name, using the compound or simple size shown.",
+    "Answer format: one interval name, for example, minor third or double-augmented eleventh; preserve the written interval number, including whether it is simple or compound.",
+    "Give one interval name, preserving the written interval number rather than reducing compound intervals to simple ones.",
+    "Answer with one interval name, preserving the written simple or compound interval number.",
+    "The expected answer is one interval name with the written interval number preserved.",
+    "Provide one interval name, using the simple or compound number shown by the written notes.",
 )
 INTERVAL_ARITHMETIC_SINGLE_OPENERS = {
     "add": (
@@ -120,11 +120,11 @@ INTERVAL_ARITHMETIC_CHAIN_OPENERS = (
     "Compute the result of this interval chain starting at {start_interval}: {operations}.",
 )
 INTERVAL_ONLY_TAILS = (
-    "Answer format: one interval name, for example, major sixth.",
-    "Give one interval name.",
-    "Answer with one interval name.",
-    "Provide a single interval name, for example, diminished fourth.",
-    "The expected answer is one interval name.",
+    "Answer format: one interval name for the final result, for example, major sixth or diminished tenth.",
+    "Give one interval name for the final result, using the resulting interval number.",
+    "Answer with one interval name for the final result.",
+    "Provide a single interval name for the final result, for example, diminished fourth or major tenth.",
+    "The expected answer is one interval name for the final result.",
 )
 PITCH_COUNT_OPENERS = (
     "Under pitch-class equivalence, how many distinct pitch classes are in {notes}?",

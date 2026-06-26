@@ -165,7 +165,7 @@ These families are ordered for implementation: start with compact, strongly veri
 | Mode | Prompt example | Answer |
 |---|---|---|
 | `interval_naming` | `Name the interval from F#3 to A4. Notes are written in scientific pitch notation. The answer is one interval name, including compound/simple size as written.` | `minor tenth` |
-| `interval_arithmetic` | `Start with a major tenth, then reduce to a simple interval and invert it, then add a minor third. The answer is one interval name.` | `major seventh` |
+| `interval_arithmetic` | `Start with a major tenth, then reduce to a simple interval and invert it, then add a minor third. The answer is one interval name for the final result.` | `major seventh` |
 | `pitch_count` | `Under pitch-class equivalence, how many distinct pitch classes are in C4, C5, B#3, Db4, C#5, Ebb4? Notes are written in scientific pitch notation. The answer is one integer.` | `3` |
 | `interval_classification` | `In C harmonic minor, classify the ascending note-to-note relation Eb-B using one of these labels: diatonic consonance, diatonic dissonance, chromatic alteration. The answer is one label from that list.` | `diatonic dissonance` |
 | `enharmonic_interval_comparison` | `Are C#4-E4 and Db4-Fb4 enharmonically equivalent intervals? Notes are written in scientific pitch notation. The answer is exactly 'yes' or 'no'.` | `yes` |
@@ -246,7 +246,7 @@ tests for independent cross-checks of pitch and interval behavior.
 | `chromatic_chord_label` | `In C major, what chromatic label fits C-Ab-F# over Ab? Select exactly one label from this list: French augmented sixth, Italian augmented sixth, German augmented sixth, Swiss augmented sixth, Neapolitan sixth.` | `Italian augmented sixth` |
 | `chord_membership` | `Do all tones of Cb-F-Ab belong to Eb natural minor? Give one answer, either 'yes' or 'no'.` | `yes` |
 | `roman_numeral_from_chord` | `In D minor, analyze the chord in this ABC score fragment:\nL:1/8\nM:6/8\nK:Fm\n  [=A=D=B^F] |] %1 with "^F" in the bass. Interpret the ABC score using its key signature. Answer with one compact Roman numeral and closed-up figured bass.` | `vi43` |
-| `chord_from_roman_numeral` | `Which chord tones does vi43 produce in D minor? The expected answer is a bass-upward note sequence in compact ABC notation, with any accidental made explicit, separated by hyphens.` | `^F-=A-=B-=D` |
+| `chord_from_roman_numeral` | `Which chord tones does vi43 produce in D minor? The expected answer is a hyphen-separated bass-upward note sequence in compact ABC notation, with any accidental made explicit, for example, ^C-=E-G.` | `^F-=A-=B-=D` |
 
 **Implemented behavior notes**
 

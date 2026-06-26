@@ -99,9 +99,9 @@ INVERSION_OPENERS = (
 )
 INVERSION_TAILS = (
     "Answer format: inversion label, one space, figured-bass symbol; for example, third inversion 4/2.",
-    "Give one inversion label plus figured bass, for example, first inversion 6/5.",
+    "Give one inversion label followed by one figured-bass symbol, for example, first inversion 6/5.",
     "The expected answer is an inversion label followed by figured bass, for example, root position 5/3.",
-    "Answer with the inversion label and figured-bass symbol, for example, second inversion 6/4.",
+    "Answer with the inversion label and figured-bass symbol separated by a space, for example, second inversion 6/4.",
 )
 OPEN_CLOSE_VOICING_OPENERS = (
     "{chord} is in which voicing?",
@@ -169,8 +169,8 @@ ROMAN_FROM_ORDERED_OPENERS = (
 )
 ROMAN_TAILS = (
     "Answer format: one compact Roman numeral with figured-bass digits closed up, for example, V65/V.",
-    "Give one compact Roman numeral, for example, viio42 or IV64.",
-    "The expected answer is a compact Roman numeral with closed-up figured bass.",
+    "Give one compact Roman numeral with any figured-bass digits closed up, for example, viio42 or IV64.",
+    "The expected answer is one compact Roman numeral with closed-up figured bass, for example, V65/V.",
     "Answer with one compact Roman numeral, closing up figured bass, for example, V7.",
 )
 CHORD_FROM_ROMAN_OPENERS = (
@@ -185,9 +185,9 @@ CHORD_FROM_ROMAN_OPENERS = (
 )
 NOTE_SEQUENCE_TAILS = (
     "Answer format: hyphen-separated note names from bass upward in {answer_notation}{explicit_accidental_clause}, for example, {answer_example}.",
-    "Give exactly one bass-upward note sequence in {answer_notation}{explicit_accidental_clause}; separate notes with hyphens, for example, {answer_example}.",
-    "The expected answer is a hyphen-separated bass-upward note sequence in {answer_notation}{explicit_accidental_clause}.",
-    "Answer with a bass-upward note sequence in {answer_notation}{explicit_accidental_clause}; use hyphens between notes, for example, {answer_example}.",
+    "Give one bass-upward note sequence in {answer_notation}{explicit_accidental_clause}; use hyphens between note names, for example, {answer_example}.",
+    "The expected answer is a hyphen-separated bass-upward note sequence in {answer_notation}{explicit_accidental_clause}, for example, {answer_example}.",
+    "Answer with note names from bass upward in {answer_notation}{explicit_accidental_clause}; use hyphens between note names, for example, {answer_example}.",
 )
 ENHARMONIC_OPENERS = (
     "Are {first} and {second} enharmonically equivalent as pitch-class chords?",

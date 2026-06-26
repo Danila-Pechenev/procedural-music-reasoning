@@ -92,9 +92,9 @@ Openers:
 Tails for the same mode:
 
 - `The answer is one interval name, including compound/simple size as written.`
-- `Give one interval name, keeping the compound or simple size as written.`
-- `Answer with one interval name, preserving whether the interval is simple or compound.`
-- `The expected answer is one interval name with the written interval size preserved.`
+- `Give one interval name, preserving the written interval number rather than reducing compound intervals to simple ones.`
+- `Answer with one interval name, preserving the written simple or compound interval number.`
+- `The expected answer is one interval name with the written interval number preserved.`
 
 Examples from one `chord_roman_reasoning` mode, `roman_numeral_from_chord`.
 
@@ -109,7 +109,7 @@ Tails for the same mode:
 
 - `The answer is one compact Roman numeral with figured-bass digits closed up.`
 - `Give one compact Roman numeral, closing up figured-bass digits.`
-- `The expected answer is a compact Roman numeral with no internal spaces.`
+- `The expected answer is one compact Roman numeral with closed-up figured bass, for example, V65/V.`
 - `Answer with one compact Roman numeral and closed-up figured bass.`
 
 These variants are not counted in the diversity table above, but they increase the number of visible prompt formulations.

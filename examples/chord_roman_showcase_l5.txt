@@ -299,7 +299,7 @@ Find the compact Roman numeral for the chord in this ABC score fragment:
 L:1/8
 M:3/4
 K:Eb
-  [=e^^f^a^c']1 |] %1 in E major. Interpret the score using its key signature. The expected answer is a compact Roman numeral with no internal spaces.
+  [=e^^f^a^c']1 |] %1 in E major. Interpret the score using its key signature. The expected answer is one compact Roman numeral with closed-up figured bass, for example, V65/V.
 
 ANSWER:
 viio42/iii
@@ -318,7 +318,7 @@ Inserting suffix 42 before the slash in viio/iii gives viio42/iii.
 TASK 20 | mode=roman_numeral_from_chord | style=compact_abc | with_octave=False
 --------------------------------------------------------------------------------
 PROMPT:
-In the key of Cb major, Roman-numeral analyze "_F"-"_D"-"_B" as chord tones over "_B". Notes are written in compact ABC notation. The expected answer is a compact Roman numeral with no internal spaces.
+In the key of Cb major, Roman-numeral analyze "_F"-"_D"-"_B" as chord tones over "_B". Notes are written in compact ABC notation. The expected answer is one compact Roman numeral with closed-up figured bass, for example, V65/V.
 
 ANSWER:
 viio
@@ -333,7 +333,7 @@ Combining the base viio with no suffix gives viio.
 TASK 21 | mode=roman_numeral_from_chord | style=spn | with_octave=True
 --------------------------------------------------------------------------------
 PROMPT:
-For D# minor, what Roman numeral describes A#4-C#5-E5-F##5? Notes are written in scientific pitch notation. The expected answer is a compact Roman numeral with no internal spaces.
+For D# minor, what Roman numeral describes A#4-C#5-E5-F##5? Notes are written in scientific pitch notation. The expected answer is one compact Roman numeral with closed-up figured bass, for example, V65/V.
 
 ANSWER:
 viio65/iv
@@ -362,7 +362,7 @@ Writing the chord from bass upward gives D##-F##-A#-B#.
 TASK 23 | mode=chord_from_roman_numeral | answer_notation=compact ABC notation
 --------------------------------------------------------------------------------
 PROMPT:
-Using G# minor, list the chord tones of V6. The expected answer is a bass-upward note sequence in compact ABC notation, with any accidental made explicit, separated by hyphens.
+Using G# minor, list the chord tones of V6. The expected answer is a hyphen-separated bass-upward note sequence in compact ABC notation, with any accidental made explicit, for example, ^C-=E-G.
 
 ANSWER:
 ^^F-^A-^D
@@ -376,7 +376,7 @@ Writing the chord from bass upward gives "^^F"-"^A"-"^D".
 TASK 24 | mode=chord_from_roman_numeral | answer_notation=compact ABC notation
 --------------------------------------------------------------------------------
 PROMPT:
-Write the notes produced by viio43/IV in Cb major. Give hyphen-separated note names from bass upward in compact ABC notation.
+Write the notes produced by viio43/IV in Cb major. Give one bass-upward note sequence in compact ABC notation; use hyphens between note names, for example, ^C-=E-G.
 
 ANSWER:
 __B-__D-_E-_G
