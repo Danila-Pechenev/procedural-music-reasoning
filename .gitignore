@@ -10,6 +10,7 @@ venv/
 env/
 
 generated_data/
+benchmark_data/
 *.jsonl
 
 .DS_Store
