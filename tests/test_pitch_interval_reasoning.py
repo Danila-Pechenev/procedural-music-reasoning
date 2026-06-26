@@ -54,10 +54,20 @@ def test_score_answer_normalizes_music_answer_variants():
         "double augmented eleventh.",
         _problem("double-augmented eleventh", answer_kind="interval"),
     ) == 1.0
+    assert task.score_answer(
+        "doubly augmented eleventh.",
+        _problem("double-augmented eleventh", answer_kind="interval"),
+    ) == 1.0
+    assert task.score_answer(
+        "doubly-diminished seventh.",
+        _problem("double diminished seventh", answer_kind="interval"),
+    ) == 1.0
     assert task.score_answer("double octave", _problem("perfect fifteenth", answer_kind="interval")) == 1.0
+    assert task.score_answer("B♮4", _problem("B4", answer_kind="note", answer_notation="scientific pitch notation")) == 1.0
     assert task.score_answer("B", _problem("=B", answer_kind="note", answer_notation="compact ABC notation")) == 1.0
     assert task.score_answer('"=B"', _problem("B", answer_kind="note", answer_notation="compact ABC notation")) == 1.0
     assert task.score_answer("4", _problem(4, answer_kind="integer")) == 1.0
+    assert task.score_answer("4.", _problem(4, answer_kind="integer")) == 1.0
     assert task.score_answer("4.0", _problem(4, answer_kind="integer")) == 0.0
 
 

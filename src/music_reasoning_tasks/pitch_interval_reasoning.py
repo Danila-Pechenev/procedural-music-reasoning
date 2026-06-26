@@ -333,7 +333,7 @@ class PitchIntervalReasoning(Task):
             return float(AnswerNormalizer.text(answer) == expected)
         if kind == "integer":
             try:
-                return float(int(answer) == int(expected))
+                return float(int(AnswerNormalizer.text(answer)) == int(AnswerNormalizer.text(expected)))
             except Exception:
                 return 0.0
         return float(AnswerNormalizer.text(answer) == AnswerNormalizer.text(expected))

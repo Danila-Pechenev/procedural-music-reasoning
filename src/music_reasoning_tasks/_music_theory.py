@@ -672,8 +672,12 @@ class AnswerNormalizer:
             .rstrip(".")
             .replace("♯", "#")
             .replace("♭", "b")
+            .replace("♮", "")
             .replace("𝄪", "##")
             .replace("𝄫", "bb")
+            .replace("–", "-")
+            .replace("—", "-")
+            .replace("−", "-")
         )
 
         def replace_accidental_word(match: re.Match[str]) -> str:
@@ -700,12 +704,23 @@ class AnswerNormalizer:
     @staticmethod
     def text(text: object) -> str:
         """Normalize general text answers for exact symbolic comparison."""
-        return " ".join(AnswerNormalizer.normalize_text(text).lower().split())
+        text = AnswerNormalizer.normalize_text(text).lower()
+        text = re.sub(r"[,;:]", " ", text)
+        text = " ".join(text.replace("-", " ").split())
+        aliases = {
+            "closed voicing": "close voicing",
+            "closed position": "close voicing",
+            "close position": "close voicing",
+            "open position": "open voicing",
+            "third inversion 2": "third inversion 4/2",
+        }
+        return aliases.get(text, text)
 
     @staticmethod
     def interval(text: object) -> str:
         """Normalize interval-answer aliases that preserve exact interval identity."""
         text = " ".join(AnswerNormalizer.text(text).replace("-", " ").split())
+        text = re.sub(r"\bdoubly (augmented|diminished)\b", r"double \1", text)
         if text in {"double octave", "perfect double octave"}:
             return "perfect fifteenth"
         if text in PERFECT_INTERVAL_NAMES:
@@ -730,7 +745,13 @@ class AnswerNormalizer:
     @staticmethod
     def roman(text: object) -> str:
         """Normalize compact Roman-numeral answers without changing case semantics."""
-        return "".join(AnswerNormalizer.normalize_text(text).split()).replace("ø", "/o")
+        text = (
+            "".join(AnswerNormalizer.normalize_text(text).split())
+            .replace("ø", "/o")
+            .replace("°", "o")
+            .replace("º", "o")
+        )
+        return re.sub(r"(?<=\d)/(?=\d)", "", text)
 
     @staticmethod
     def note_sequence(text: object, answer_notation: str | None = None) -> tuple[str, ...]:

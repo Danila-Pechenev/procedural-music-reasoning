@@ -289,14 +289,23 @@ def test_abc_interval_score_requires_number_for_octave_less_interval():
 
 def test_answer_normalizer_accepts_music_answer_variants():
     assert AnswerNormalizer.interval("double augmented eleventh.") == AnswerNormalizer.interval("double-augmented eleventh")
+    assert AnswerNormalizer.interval("doubly augmented eleventh.") == AnswerNormalizer.interval("double-augmented eleventh")
+    assert AnswerNormalizer.interval("doubly-diminished seventh") == AnswerNormalizer.interval("double diminished seventh")
     assert AnswerNormalizer.interval("double octave") == "perfect fifteenth"
     assert AnswerNormalizer.note("E-flat4") == "Eb4"
+    assert AnswerNormalizer.note("B♮4") == "B4"
     assert AnswerNormalizer.note('"=B"', "compact ABC notation") == "B"
     assert AnswerNormalizer.note("B", "compact ABC notation") == "B"
+    assert AnswerNormalizer.text("half diminished seventh") == AnswerNormalizer.text("half-diminished seventh")
+    assert AnswerNormalizer.text("third inversion, 4/2") == AnswerNormalizer.text("third inversion 4/2")
+    assert AnswerNormalizer.text("closed voicing") == AnswerNormalizer.text("close voicing")
+    assert AnswerNormalizer.text("open position") == AnswerNormalizer.text("open voicing")
 
 
 def test_answer_normalizer_accepts_roman_and_note_sequence_variants():
     assert AnswerNormalizer.roman(" vii ø 6 5. ") == "vii/o65"
+    assert AnswerNormalizer.roman("vii°7/V") == "viio7/V"
+    assert AnswerNormalizer.roman("V6/5/V") == "V65/V"
     assert AnswerNormalizer.note_sequence('"=C"-"^F"', "compact ABC notation") == ("C", "^F")
     assert AnswerNormalizer.note_sequence("C# - E - G") == ("C#", "E", "G")
 

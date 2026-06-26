@@ -301,6 +301,8 @@ def test_score_answer_normalizes_roman_and_note_sequence_answers():
 
     assert task.score_answer(" V 6 5. ", _problem("V65", answer_kind="roman")) == 1.0
     assert task.score_answer("vii/o65", _problem("viiø65", answer_kind="roman")) == 1.0
+    assert task.score_answer("vii°7/V", _problem("viio7/V", answer_kind="roman")) == 1.0
+    assert task.score_answer("V6/5/V", _problem("V65/V", answer_kind="roman")) == 1.0
     assert task.score_answer("C# - E - G", _problem("C#-E-G", answer_kind="note_sequence")) == 1.0
     assert (
         task.score_answer(
@@ -311,6 +313,10 @@ def test_score_answer_normalizes_roman_and_note_sequence_answers():
     )
     assert task.score_answer("yes", _problem("yes", answer_kind="yes_no")) == 1.0
     assert task.score_answer("major   triad.", _problem("major triad", answer_kind="label")) == 1.0
+    assert task.score_answer("half diminished seventh", _problem("half-diminished seventh", answer_kind="label")) == 1.0
+    assert task.score_answer("third inversion, 4/2", _problem("third inversion 4/2", answer_kind="text")) == 1.0
+    assert task.score_answer("third inversion 2", _problem("third inversion 4/2", answer_kind="text")) == 1.0
+    assert task.score_answer("closed voicing", _problem("close voicing", answer_kind="text")) == 1.0
     assert AnswerNormalizer.text("Major   Triad.") == "major triad"
 
 
