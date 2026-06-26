@@ -146,6 +146,22 @@ python scripts/generate_examples.py chord_roman_reasoning \
 This writes JSONL files suitable for training/evaluation and optional readable
 text files for manual inspection.
 
+## Generate A Balanced Benchmark
+
+To generate the proposed easy/moderate/hard benchmark with 200 examples per
+mode, run:
+
+```bash
+python scripts/generate_benchmark.py \
+  --levels 0 3 5 \
+  --examples-per-mode 200 \
+  --out-dir benchmark_data/music_reasoning_benchmark \
+  --seed 0
+```
+
+The script writes Hugging Face-friendly split files under `data/`, a
+`summary.json`, and a dataset-card draft `README.md`.
+
 ## Examples
 
 The `examples/` directory contains curated readable samples generated at level
@@ -223,6 +239,8 @@ To add a new music task family:
 4. Add the task class to `TASK_CLASSES` in `music_reasoning_tasks.__init__`.
 5. Add focused tests under `tests/`.
 6. Update `docs/music_reasoning_specification.md`.
+7. Update `scripts/generate_benchmark.py` so the new family can be included in
+   balanced benchmark generation.
 
 Prefer putting reusable music-theory primitives in `_music_theory.py`; keep
 family-specific sampling and prompt logic in the task-family module.
