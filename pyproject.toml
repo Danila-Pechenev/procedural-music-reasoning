@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "procedural-music-reasoning"
+dynamic = ["version"]
+description = "Procedural generators for music reasoning benchmarks and training data"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Procedural Music Reasoning contributors" },
+]
+keywords = [
+    "music-theory",
+    "reasoning",
+    "benchmarking",
+    "procedural-generation",
+    "language-models",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "reasoning_core",
+    "music21",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[tool.hatch.version]
+path = "src/music_reasoning_tasks/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/music_reasoning_tasks"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+    "/src",
+    "/tests",
+    "/docs",
+    "/examples",
+    "/scripts",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["music_reasoning_tasks"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
