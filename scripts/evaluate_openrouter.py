@@ -42,6 +42,7 @@ from music_reasoning_tasks import score_answer
 OPENROUTER_API_KEY = "PASTE_YOUR_OPENROUTER_API_KEY_HERE"
 
 DEFAULT_DATASET_REPO = "dpechenev/music-reasoning-benchmark"
+DEFAULT_DATASET_CONFIG = "n64"
 DEFAULT_OUTPUT_ROOT = Path("benchmark_results")
 DEFAULT_SPLITS = ("easy", "moderate", "hard")
 REASONING_EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh", "max")
@@ -147,20 +148,22 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
 
 def _load_benchmark(
     dataset_repo: str,
+    dataset_config: str,
     dataset_revision: str,
     splits: Sequence[str],
     limit_per_split: int | None,
 ) -> list[dict[str, Any]]:
-    """Download benchmark splits from a pinned Hugging Face dataset revision."""
+    """Download one benchmark configuration from a pinned dataset revision."""
     from datasets import load_dataset
 
     rows: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     try:
-        benchmark = load_dataset(dataset_repo, revision=dataset_revision)
+        benchmark = load_dataset(dataset_repo, dataset_config, revision=dataset_revision)
     except Exception as exc:
         raise EvaluationError(
-            f"Could not load {dataset_repo!r} at revision {dataset_revision!r}: {exc}"
+            f"Could not load configuration {dataset_config!r} from {dataset_repo!r} "
+            f"at revision {dataset_revision!r}: {exc}"
         ) from exc
     for split in splits:
         if split not in benchmark:
@@ -177,7 +180,8 @@ def _load_benchmark(
             missing = {"id", "split", "family", "mode", "prompt", "answer", "metadata"} - row.keys()
             if missing:
                 raise EvaluationError(
-                    f"Benchmark row in {dataset_repo}/{split} is missing fields: {sorted(missing)}"
+                    f"Benchmark row in {dataset_repo}/{dataset_config}/{split} "
+                    f"is missing fields: {sorted(missing)}"
                 )
             if row["id"] in seen_ids:
                 raise EvaluationError(f"Duplicate benchmark row ID: {row['id']}")
@@ -243,6 +247,7 @@ def _is_reusable_result(
     row: dict[str, Any],
     model: str,
     dataset_repo: str,
+    dataset_config: str,
     dataset_commit: str,
     reasoning_effort: str | None,
     temperature: float,
@@ -252,6 +257,7 @@ def _is_reusable_result(
         result.get("status") == "ok"
         and result.get("model_requested") == model
         and result.get("dataset_repo") == dataset_repo
+        and result.get("dataset_config") == dataset_config
         and result.get("dataset_commit") == dataset_commit
         and result.get("reasoning_effort") == reasoning_effort
         and _numeric(result.get("temperature", 0.0)) == temperature
@@ -664,6 +670,7 @@ def _write_report(
     *,
     splits: Sequence[str],
     dataset_repo: str,
+    dataset_config: str,
     dataset_revision: str,
     dataset_commit: str,
     generator_version: str,
@@ -689,6 +696,7 @@ def _write_report(
         f"- **Model:** `{model.removeprefix('openrouter/')}`",
         f"- **Reasoning effort:** `{reasoning_effort or 'provider default'}`",
         f"- **Dataset:** [`{dataset_repo}`](https://huggingface.co/datasets/{dataset_repo})",
+        f"- **Dataset configuration:** `{dataset_config}`",
         f"- **Dataset revision:** `{dataset_revision}`",
         f"- **Dataset commit:** `{dataset_commit}`",
         f"- **Generator version:** `{generator_version}`",
@@ -738,6 +746,11 @@ def _parse_args() -> argparse.Namespace:
         help=f"Hugging Face dataset repository. Defaults to {DEFAULT_DATASET_REPO}.",
     )
     parser.add_argument(
+        "--dataset-config",
+        default=DEFAULT_DATASET_CONFIG,
+        help=f"Hugging Face dataset configuration. Defaults to {DEFAULT_DATASET_CONFIG}.",
+    )
+    parser.add_argument(
         "--revision",
         help="Hugging Face tag, branch, or commit. Defaults to the latest stable semantic-version tag.",
     )
@@ -780,6 +793,8 @@ def _parse_args() -> argparse.Namespace:
         parser.error("--limit-per-split must be at least 1")
     if args.max_incorrect_examples < 0:
         parser.error("--max-incorrect-examples cannot be negative")
+    if not args.dataset_config.strip():
+        parser.error("--dataset-config cannot be empty")
     return args
 
 
@@ -789,11 +804,15 @@ def main() -> None:
     model = _openrouter_model(args.model)
     dataset_revision = args.revision or _latest_dataset_version_tag(args.dataset_repo)
     dataset_commit = _resolve_dataset_commit(args.dataset_repo, dataset_revision)
-    print(f"Dataset: {args.dataset_repo}@{dataset_revision} ({dataset_commit[:12]})")
+    print(
+        f"Dataset: {args.dataset_repo}/{args.dataset_config}@{dataset_revision} "
+        f"({dataset_commit[:12]})"
+    )
     output_dir = (
         args.output_root
         / _model_slug(model.removeprefix("openrouter/"))
         / _model_slug(dataset_revision)
+        / _model_slug(args.dataset_config)
     )
     if args.reasoning_effort is not None:
         output_dir /= f"reasoning-{_model_slug(args.reasoning_effort)}"
@@ -805,6 +824,7 @@ def main() -> None:
 
     benchmark_rows = _load_benchmark(
         args.dataset_repo,
+        args.dataset_config,
         dataset_revision,
         args.splits,
         args.limit_per_split,
@@ -823,6 +843,7 @@ def main() -> None:
                 row,
                 model,
                 args.dataset_repo,
+                args.dataset_config,
                 dataset_commit,
                 args.reasoning_effort,
                 args.temperature,
@@ -848,6 +869,7 @@ def main() -> None:
             )
             for result in results:
                 result["dataset_repo"] = args.dataset_repo
+                result["dataset_config"] = args.dataset_config
                 result["dataset_revision"] = dataset_revision
                 result["dataset_commit"] = dataset_commit
             _append_results(results_path, results)
@@ -880,6 +902,7 @@ def main() -> None:
         report_path,
         splits=args.splits,
         dataset_repo=args.dataset_repo,
+        dataset_config=args.dataset_config,
         dataset_revision=dataset_revision,
         dataset_commit=dataset_commit,
         generator_version=_generator_version(benchmark_rows),
