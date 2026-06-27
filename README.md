@@ -170,6 +170,70 @@ python scripts/generate_benchmark.py \
 The script writes Hugging Face-friendly split files under `data/`, a
 `summary.json`, and a dataset-card draft `README.md`.
 
+Benchmark exports append `Return only the requested answer.` to every prompt
+to enforce compact evaluation responses. This instruction is benchmark-only;
+examples generated directly for training retain their original prompts.
+
+## Evaluate an OpenRouter Model
+
+Install the benchmark-evaluation dependency:
+
+```bash
+pip install -e ".[benchmark]"
+```
+
+Paste an OpenRouter API key into `OPENROUTER_API_KEY` near the top of
+`scripts/evaluate_openrouter.py`, then provide an exact OpenRouter model ID:
+
+```bash
+python scripts/evaluate_openrouter.py openai/gpt-4.1-mini
+```
+
+By default, the script evaluates every row in the `easy`, `moderate`, and
+`hard` splits downloaded from
+[`dpechenev/music-reasoning-benchmark`](https://huggingface.co/datasets/dpechenev/music-reasoning-benchmark),
+using its latest stable semantic-version tag. The selected tag and exact commit
+are recorded in every result and report. Calls are made in bounded batches through
+[`litlm`](https://github.com/sileod/litlm), and each response is evaluated with
+the corresponding task family's `score_answer` method. All predictions are
+stored in one resumable JSONL file and one detailed Markdown report for
+convenience, while every metric remains separated by difficulty split. Outputs
+are organized as:
+
+```text
+benchmark_results/<model>/<version>/
+  results.jsonl
+  report.md
+```
+
+The report includes recorded API benchmark time separately for each split.
+
+Select another published benchmark release with `--revision`, for example:
+
+```bash
+python scripts/evaluate_openrouter.py openai/gpt-4.1-mini \
+  --revision v0.1.1
+```
+
+For models that expose configurable reasoning through OpenRouter, set an effort
+level explicitly:
+
+```bash
+python scripts/evaluate_openrouter.py deepseek/deepseek-v4-pro \
+  --reasoning-effort high \
+  --max-tokens 4096
+```
+
+Effort-specific evaluations are stored in a subdirectory such as
+`reasoning-high/` so they remain separate from default-effort runs.
+
+Before launching a full run, an inexpensive smoke test is recommended:
+
+```bash
+python scripts/evaluate_openrouter.py openai/gpt-4.1-mini \
+  --limit-per-split 5
+```
+
 ## Examples
 
 The `examples/` directory contains curated readable samples generated at level
@@ -202,6 +266,8 @@ procedural-music-reasoning/
     chord_roman_showcase_l5.txt
   scripts/
     generate_examples.py
+    generate_benchmark.py
+    evaluate_openrouter.py
 ```
 
 ## Testing

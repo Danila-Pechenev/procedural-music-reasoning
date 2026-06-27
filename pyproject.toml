@@ -43,6 +43,12 @@ dev = [
     "pytest-cov",
     "ruff",
 ]
+benchmark = [
+    "datasets",
+    "huggingface_hub",
+    "litlm>=0.3.0",
+    "packaging",
+]
 
 [tool.hatch.version]
 path = "src/music_reasoning_tasks/__init__.py"

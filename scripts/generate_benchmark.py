@@ -42,7 +42,8 @@ DEFAULT_SPLIT_NAMES = {
     3: "moderate",
     5: "hard",
 }
-DEFAULT_BENCHMARK_VERSION = "v0.1.0"
+DEFAULT_BENCHMARK_VERSION = "v0.2.0"
+BENCHMARK_RESPONSE_INSTRUCTION = "Return only the requested answer."
 
 
 def _jsonable(value: Any) -> Any:
@@ -65,6 +66,11 @@ def _split_name(level: int) -> str:
     return DEFAULT_SPLIT_NAMES.get(level, f"level_{level}")
 
 
+def _benchmark_prompt(prompt: object) -> str:
+    """Add the output-only instruction used for benchmark evaluation."""
+    return f"{str(prompt).rstrip()} {BENCHMARK_RESPONSE_INSTRUCTION}"
+
+
 def _row_from_example(example: Any, *, split: str, level: int, family: str, index: int) -> dict[str, Any]:
     """Create one benchmark row from a generated example."""
     metadata = dict(example.metadata)
@@ -81,7 +87,7 @@ def _row_from_example(example: Any, *, split: str, level: int, family: str, inde
         "difficulty": split,
         "family": family,
         "mode": mode,
-        "prompt": str(example.prompt),
+        "prompt": _benchmark_prompt(example.prompt),
         "answer": str(example.answer),
         "answer_kind": answer_kind,
         "cot": cot,
@@ -122,7 +128,7 @@ def _generate_mode_rows(
             )
 
         example = task.generate_example(level=level, max_tokens=max_tokens, mode=mode)
-        prompt_key = (split, str(example.prompt))
+        prompt_key = (split, _benchmark_prompt(example.prompt))
         if deduplicate_prompts and prompt_key in seen_prompts:
             continue
 
@@ -236,6 +242,10 @@ answer with `answer` using the task scorer. The `cot` field is provided for
 inspection, supervised training, and error analysis, but should not be included
 in the model prompt during benchmark evaluation.
 
+Every benchmark prompt ends with `{BENCHMARK_RESPONSE_INSTRUCTION}` This
+benchmark-only instruction requests the short answer expected by the scorer;
+it is not added to examples produced directly by the task generators.
+
 Difficulty levels are distributional. A hard split may still contain some
 simple examples, but harder musical features are sampled more often or from a
 larger space.
@@ -322,6 +332,7 @@ def main() -> None:
     summary: dict[str, Any] = {
         "benchmark_version": args.benchmark_version,
         "generator_version": args.generator_version,
+        "response_instruction": BENCHMARK_RESPONSE_INSTRUCTION,
         "levels": args.levels,
         "examples_per_mode": args.examples_per_mode,
         "seed": seed,
