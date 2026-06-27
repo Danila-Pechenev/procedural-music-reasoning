@@ -721,6 +721,12 @@ class AnswerNormalizer:
         """Normalize interval-answer aliases that preserve exact interval identity."""
         text = " ".join(AnswerNormalizer.text(text).replace("-", " ").split())
         text = re.sub(r"\bdoubly (augmented|diminished)\b", r"double \1", text)
+
+        def replace_numeric_ordinal(match: re.Match[str]) -> str:
+            number = int(match.group(1))
+            return NUMBER_NAMES.get(number, match.group(0))
+
+        text = re.sub(r"\b(\d+)(?:st|nd|rd|th)\b", replace_numeric_ordinal, text)
         if text in {"double octave", "perfect double octave"}:
             return "perfect fifteenth"
         if text in PERFECT_INTERVAL_NAMES:
