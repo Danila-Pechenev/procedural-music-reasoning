@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 """Generate a balanced music reasoning benchmark for Hugging Face upload.
 
-Default benchmark layout:
-
-    easy      level 0    3200 examples
-    moderate  level 3    3200 examples
-    hard      level 5    3200 examples
-
-Each split contains 200 examples for every mode of both implemented task
-families, giving 1600 pitch/interval examples and 1600 chord/Roman examples.
+The default output contains four nested Hugging Face configurations with 16,
+32, 64, and 128 examples per mode. Every configuration preserves the easy,
+moderate, and hard difficulty splits.
 """
 
 from __future__ import annotations
@@ -18,6 +13,7 @@ from collections import Counter, defaultdict
 import json
 from pathlib import Path
 import random
+import shutil
 import sys
 from typing import Any
 
@@ -42,7 +38,9 @@ DEFAULT_SPLIT_NAMES = {
     3: "moderate",
     5: "hard",
 }
-DEFAULT_BENCHMARK_VERSION = "v0.2.0"
+DEFAULT_CONFIG_SIZES = (16, 32, 64, 128)
+DEFAULT_CONFIG_SIZE = 64
+DEFAULT_BENCHMARK_VERSION = "v0.3.0"
 BENCHMARK_RESPONSE_INSTRUCTION = "Return only the requested answer."
 
 
@@ -64,6 +62,10 @@ def _metadata_json(metadata: Any) -> str:
 
 def _split_name(level: int) -> str:
     return DEFAULT_SPLIT_NAMES.get(level, f"level_{level}")
+
+
+def _config_name(examples_per_mode: int) -> str:
+    return f"n{examples_per_mode}"
 
 
 def _benchmark_prompt(prompt: object) -> str:
@@ -113,7 +115,6 @@ def _generate_mode_rows(
     deduplicate_prompts: bool,
     seen_prompts: set[tuple[str, str]],
     max_attempts: int,
-    start_index: int,
 ) -> list[dict[str, Any]]:
     """Generate exactly n_examples rows for one family/mode/level cell."""
     task = get_task(family)
@@ -143,7 +144,7 @@ def _generate_mode_rows(
                 split=split,
                 level=level,
                 family=family,
-                index=start_index + len(rows),
+                index=len(rows),
             )
         )
     return rows
@@ -175,23 +176,55 @@ def _write_dataset_card(
     path: Path,
     *,
     levels: list[int],
-    examples_per_mode: int,
+    config_sizes: list[int],
+    default_config_size: int,
     seed: int | None,
     benchmark_version: str,
     generator_version: str,
 ) -> None:
-    """Write a minimal Hugging Face dataset card for the generated benchmark."""
-    split_rows = "\n".join(
-        f"  - split: {_split_name(level)}\n    path: data/{_split_name(level)}.jsonl" for level in levels
+    """Write a Hugging Face dataset card with one subset per benchmark size."""
+    config_blocks: list[str] = []
+    for config_size in config_sizes:
+        config_name = _config_name(config_size)
+        lines = [f"- config_name: {config_name}"]
+        if config_size == default_config_size:
+            lines.append("  default: true")
+        lines.append("  data_files:")
+        for level in levels:
+            split = _split_name(level)
+            lines.extend(
+                [
+                    f"  - split: {split}",
+                    f"    path: data/{config_name}/{split}.jsonl",
+                ]
+            )
+        config_blocks.append("\n".join(lines))
+
+    total_modes = sum(len(modes) for modes in TASK_FAMILIES.values())
+    config_names = [_config_name(size) for size in config_sizes]
+    configuration_rows = "\n".join(
+        f"| `{_config_name(size)}`{' (default)' if size == default_config_size else ''} "
+        f"| {size} | {size * total_modes} | {size * total_modes * len(levels)} |"
+        for size in config_sizes
     )
-    total_per_split = examples_per_mode * sum(len(modes) for modes in TASK_FAMILIES.values())
-    total = total_per_split * len(levels)
+    split_rows = "\n".join(
+        f"| `{_split_name(level)}` | {level} |" for level in levels
+    )
     path.write_text(
         f"""---
+pretty_name: Procedural Music Reasoning Benchmark
+license: mit
+language:
+- en
+task_categories:
+- question-answering
+tags:
+- music
+- music-theory
+- reasoning
+- benchmark
 configs:
-- config_name: default
-  data_files:
-{split_rows}
+{chr(10).join(config_blocks)}
 ---
 
 # Procedural Music Reasoning Benchmark
@@ -208,19 +241,25 @@ families:
 - `pitch_interval_reasoning`
 - `chord_roman_reasoning`
 
+## Configurations
+
+| Configuration | Examples per mode | Examples per split | Total examples |
+|---|---:|---:|---:|
+{configuration_rows}
+
+The configurations are deterministic nested subsets in ascending size order:
+{" is contained in ".join(f"`{name}`" for name in config_names)}. This makes
+results obtained at different benchmark sizes directly comparable.
+
 ## Splits
 
-| Split | Generator level | Examples |
-|---|---:|---:|
+Every configuration contains the same difficulty splits:
+
+| Split | Generator level |
+|---|---:|
+{split_rows}
 """
-        + "\n".join(f"| `{_split_name(level)}` | {level} | {total_per_split} |" for level in levels)
         + f"""
-
-Total examples: **{total}**.
-
-Each split contains `{examples_per_mode}` examples per mode. With eight modes
-per family and two families, this gives `{total_per_split}` examples per split.
-
 ## Columns
 
 - `id`: stable row identifier.
@@ -260,9 +299,13 @@ from datasets import load_dataset
 
 dataset = load_dataset(
     "dpechenev/music-reasoning-benchmark",
+    "{_config_name(default_config_size)}",
     revision="{benchmark_version}",
 )
 ```
+
+Replace `{_config_name(default_config_size)}` with any configuration listed
+above to select a different benchmark size.
 
 Generation seed: `{seed}`.
 """,
@@ -280,10 +323,17 @@ def main() -> None:
         help="Generator levels to produce. Defaults to 0 3 5.",
     )
     parser.add_argument(
-        "--examples-per-mode",
+        "--config-sizes",
         type=int,
-        default=200,
-        help="Number of examples for each family/mode/level cell.",
+        nargs="+",
+        default=list(DEFAULT_CONFIG_SIZES),
+        help="Nested configuration sizes in examples per mode. Defaults to 16 32 64 128.",
+    )
+    parser.add_argument(
+        "--default-config-size",
+        type=int,
+        default=DEFAULT_CONFIG_SIZE,
+        help="Configuration size marked as the Hugging Face default. Defaults to 64.",
     )
     parser.add_argument(
         "--out-dir",
@@ -307,7 +357,7 @@ def main() -> None:
         "--max-attempts-multiplier",
         type=int,
         default=80,
-        help="Maximum attempts per cell equals examples_per_mode times this value.",
+        help="Maximum attempts per cell equals the largest configuration size times this value.",
     )
     parser.add_argument(
         "--allow-duplicate-prompts",
@@ -317,9 +367,19 @@ def main() -> None:
     parser.add_argument(
         "--write-combined",
         action="store_true",
-        help="Also write data/all.jsonl for local analysis. By default, difficulty splits stay separate.",
+        help="Also write one data/<config>/all.jsonl file per configuration for local analysis.",
     )
     args = parser.parse_args()
+
+    config_sizes = sorted(set(args.config_sizes))
+    if not config_sizes or config_sizes[0] <= 0:
+        parser.error("--config-sizes must contain positive integers.")
+    if args.default_config_size not in config_sizes:
+        parser.error("--default-config-size must be one of --config-sizes.")
+    if args.max_attempts_multiplier <= 0:
+        parser.error("--max-attempts-multiplier must be positive.")
+    if len(set(args.levels)) != len(args.levels):
+        parser.error("--levels must not contain duplicates.")
 
     seed = None if args.seed == -1 else args.seed
     if seed is not None:
@@ -327,6 +387,8 @@ def main() -> None:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     data_dir = args.out_dir / "data"
+    if data_dir.exists():
+        shutil.rmtree(data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
 
     summary: dict[str, Any] = {
@@ -334,48 +396,65 @@ def main() -> None:
         "generator_version": args.generator_version,
         "response_instruction": BENCHMARK_RESPONSE_INSTRUCTION,
         "levels": args.levels,
-        "examples_per_mode": args.examples_per_mode,
+        "config_sizes": config_sizes,
+        "default_config": _config_name(args.default_config_size),
         "seed": seed,
         "families": {family: list(modes) for family, modes in TASK_FAMILIES.items()},
-        "splits": {},
+        "configurations": {
+            _config_name(size): {
+                "examples_per_mode": size,
+                "splits": {},
+            }
+            for size in config_sizes
+        },
     }
-    all_rows: list[dict[str, Any]] = []
+    rows_by_config: dict[str, list[dict[str, Any]]] = {
+        _config_name(size): [] for size in config_sizes
+    }
+    largest_config_size = config_sizes[-1]
 
     for level in args.levels:
         split = _split_name(level)
-        split_rows: list[dict[str, Any]] = []
+        split_rows_by_config: dict[str, list[dict[str, Any]]] = {
+            _config_name(size): [] for size in config_sizes
+        }
         seen_prompts: set[tuple[str, str]] = set()
         print(f"Generating split {split!r} at level {level}...")
         for family, modes in TASK_FAMILIES.items():
             for mode in modes:
-                print(f"  {family}/{mode}: {args.examples_per_mode}")
+                print(f"  {family}/{mode}: {largest_config_size}")
                 rows = _generate_mode_rows(
                     family=family,
                     mode=mode,
                     level=level,
                     split=split,
-                    n_examples=args.examples_per_mode,
+                    n_examples=largest_config_size,
                     max_tokens=args.max_tokens,
                     deduplicate_prompts=not args.allow_duplicate_prompts,
                     seen_prompts=seen_prompts,
-                    max_attempts=args.examples_per_mode * args.max_attempts_multiplier,
-                    start_index=len(split_rows),
+                    max_attempts=largest_config_size * args.max_attempts_multiplier,
                 )
-                split_rows.extend(rows)
+                for size in config_sizes:
+                    split_rows_by_config[_config_name(size)].extend(rows[:size])
 
-        _write_jsonl(data_dir / f"{split}.jsonl", split_rows)
-        all_rows.extend(split_rows)
-        summary["splits"][split] = _summarize_split(split_rows)
+        for size in config_sizes:
+            config_name = _config_name(size)
+            split_rows = split_rows_by_config[config_name]
+            _write_jsonl(data_dir / config_name / f"{split}.jsonl", split_rows)
+            rows_by_config[config_name].extend(split_rows)
+            summary["configurations"][config_name]["splits"][split] = _summarize_split(split_rows)
 
-    if args.write_combined:
-        _write_jsonl(data_dir / "all.jsonl", all_rows)
+    for config_name, config_rows in rows_by_config.items():
+        if args.write_combined:
+            _write_jsonl(data_dir / config_name / "all.jsonl", config_rows)
+        summary["configurations"][config_name]["total_examples"] = len(config_rows)
 
-    summary["total_examples"] = len(all_rows)
     _write_summary(args.out_dir / "summary.json", summary)
     _write_dataset_card(
         args.out_dir / "README.md",
         levels=args.levels,
-        examples_per_mode=args.examples_per_mode,
+        config_sizes=config_sizes,
+        default_config_size=args.default_config_size,
         seed=seed,
         benchmark_version=args.benchmark_version,
         generator_version=args.generator_version,
