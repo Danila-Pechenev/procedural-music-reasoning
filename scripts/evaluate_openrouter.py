@@ -39,7 +39,6 @@ from music_reasoning_tasks import score_answer
 
 # Keep this placeholder in committed code. Paste your key locally and never
 # commit the populated value.
-# OPENROUTER_API_KEY = "PASTE_YOUR_OPENROUTER_API_KEY_HERE"
 OPENROUTER_API_KEY = "PASTE_YOUR_OPENROUTER_API_KEY_HERE"
 
 DEFAULT_DATASET_REPO = "dpechenev/music-reasoning-benchmark"
