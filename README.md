@@ -156,19 +156,21 @@ text files for manual inspection.
 
 ## Generate A Balanced Benchmark
 
-To generate the proposed easy/moderate/hard benchmark with 200 examples per
-mode, run:
+To generate Hugging Face configurations with 16, 32, 64, and 128 examples per
+mode, each containing easy, moderate, and hard splits, run:
 
 ```bash
 python scripts/generate_benchmark.py \
   --levels 0 3 5 \
-  --examples-per-mode 200 \
+  --config-sizes 16 32 64 128 \
+  --default-config-size 64 \
   --out-dir benchmark_data/music_reasoning_benchmark \
   --seed 0
 ```
 
-The script writes Hugging Face-friendly split files under `data/`, a
-`summary.json`, and a dataset-card draft `README.md`.
+The script writes each configuration under `data/n<size>/`, plus a
+`summary.json` and a Hugging Face dataset card. Configurations are nested:
+`n16` is a deterministic subset of `n32`, then `n64`, then `n128`.
 
 Benchmark exports append `Return only the requested answer.` to every prompt
 to enforce compact evaluation responses. This instruction is benchmark-only;
@@ -192,8 +194,9 @@ python scripts/evaluate_openrouter.py openai/gpt-4.1-mini
 By default, the script evaluates every row in the `easy`, `moderate`, and
 `hard` splits downloaded from
 [`dpechenev/music-reasoning-benchmark`](https://huggingface.co/datasets/dpechenev/music-reasoning-benchmark),
-using its latest stable semantic-version tag. The selected tag and exact commit
-are recorded in every result and report. Calls are made in bounded batches through
+using the `n64` configuration and its latest stable semantic-version tag. The
+selected configuration, tag, and exact commit are recorded in every result and
+report. Calls are made in bounded batches through
 [`litlm`](https://github.com/sileod/litlm), and each response is evaluated with
 the corresponding task family's `score_answer` method. All predictions are
 stored in one resumable JSONL file and one detailed Markdown report for
@@ -202,8 +205,9 @@ are organized as:
 
 ```text
 benchmark_results/<model>/<version>/
-  results.jsonl
-  report.md
+  <dataset-config>/
+    results.jsonl
+    report.md
 ```
 
 The report includes recorded API benchmark time separately for each split.
@@ -213,6 +217,13 @@ Select another published benchmark release with `--revision`, for example:
 ```bash
 python scripts/evaluate_openrouter.py openai/gpt-4.1-mini \
   --revision v0.1.1
+```
+
+Select a different benchmark size with `--dataset-config`:
+
+```bash
+python scripts/evaluate_openrouter.py openai/gpt-4.1-mini \
+  --dataset-config n16
 ```
 
 For models that expose configurable reasoning through OpenRouter, set an effort
