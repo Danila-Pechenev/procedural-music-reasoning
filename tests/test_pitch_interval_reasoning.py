@@ -63,6 +63,8 @@ def test_score_answer_normalizes_music_answer_variants():
         _problem("double diminished seventh", answer_kind="interval"),
     ) == 1.0
     assert task.score_answer("Augmented 19th", _problem("augmented nineteenth", answer_kind="interval")) == 1.0
+    assert task.score_answer("Perfect eleventh (P11)", _problem("perfect eleventh", answer_kind="interval")) == 1.0
+    assert task.score_answer("Perfect eleventh (P4)", _problem("perfect eleventh", answer_kind="interval")) == 1.0
     assert task.score_answer("double octave", _problem("perfect fifteenth", answer_kind="interval")) == 1.0
     assert task.score_answer("B♮4", _problem("B4", answer_kind="note", answer_notation="scientific pitch notation")) == 1.0
     assert task.score_answer("B", _problem("=B", answer_kind="note", answer_notation="compact ABC notation")) == 1.0

@@ -292,6 +292,11 @@ def test_answer_normalizer_accepts_music_answer_variants():
     assert AnswerNormalizer.interval("doubly augmented eleventh.") == AnswerNormalizer.interval("double-augmented eleventh")
     assert AnswerNormalizer.interval("doubly-diminished seventh") == AnswerNormalizer.interval("double diminished seventh")
     assert AnswerNormalizer.interval("Augmented 19th") == AnswerNormalizer.interval("augmented nineteenth")
+    assert AnswerNormalizer.interval("Perfect eleventh (P11)") == AnswerNormalizer.interval("perfect eleventh")
+    assert AnswerNormalizer.interval("major third (M3)") == AnswerNormalizer.interval("major third")
+    assert AnswerNormalizer.interval("minor third (m3)") == AnswerNormalizer.interval("minor third")
+    assert AnswerNormalizer.interval("double-augmented fourth (AA4)") == AnswerNormalizer.interval("double-augmented fourth")
+    assert AnswerNormalizer.interval("perfect eleventh (any parenthetical text)") == AnswerNormalizer.interval("perfect eleventh")
     assert AnswerNormalizer.interval("double octave") == "perfect fifteenth"
     assert AnswerNormalizer.note("E-flat4") == "Eb4"
     assert AnswerNormalizer.note("B♮4") == "B4"

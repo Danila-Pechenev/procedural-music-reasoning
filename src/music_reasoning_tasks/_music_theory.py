@@ -719,6 +719,7 @@ class AnswerNormalizer:
     @staticmethod
     def interval(text: object) -> str:
         """Normalize interval-answer aliases that preserve exact interval identity."""
+        text = re.sub(r"\s*\([^)]*\)", "", AnswerNormalizer.normalize_text(text))
         text = " ".join(AnswerNormalizer.text(text).replace("-", " ").split())
         text = re.sub(r"\bdoubly (augmented|diminished)\b", r"double \1", text)
 
